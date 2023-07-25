@@ -19,19 +19,11 @@ import * as AI from 'ai-jsx'
 import {LogImplementation, LogLevel, PinoLogger} from 'ai-jsx/core/log'
 import { pino } from 'pino';
 
-class ConsoleLogger extends LogImplementation {
-  log(level: LogLevel, element: AI.Element<any>, renderId: string, obj: unknown | string, msg?: string) {
-    const args = [] as unknown[];
-    args.push(`<${element.tag.name}>`, renderId);
-    if (msg) {
-      args.push(msg);
-    }
-    if (obj) {
-      args.push(obj);
-    }
-    console[level === 'fatal' ? 'error' : level](...args);
-  }
-}
+
+const pinoStdoutLogger = pino({
+  name: 'ai-jsx',
+  level: process.env.loglevel ?? 'trace',
+});
 
 function App({ messages }: { messages: PropsOfComponent<typeof ConversationHistory>['messages'] }, {logger}: AI.ComponentContext) {
 
@@ -130,18 +122,21 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
       <ChatCompletion>
         <SystemMessage>
           <Prompt hhh persona="expert travel planner" />
-          You help users plan activities to Seattle. If a user asks for anything not related to that, tell them you can{"'"}t help.
+          You help users with plan activities in Seattle. You can look for locations and find directions. If a user asks for anything not related to that, tell them you can{"'"}t help.
+
+          If the user asks for location information and directions, you will be given live API calls in subsequent systems messages. You should respond to the user{"'"}s request using the results of those API calls. If those API calls errored out, tell the user there was an error making the request. Do not attempt to answer using your latent knowledge.
+          
           Respond concisely, using markdown formatting to make your response more readable and structured.
         </SystemMessage>
         <NaturalLanguageRouter query={latestMessage.content!}>
           <Route when="to respond to the user's request, it would be helpful to get directions">
             <SystemMessage>
-              The directions the user asked for: <UseTools tools={tools} fallback='' query={latestMessage.content!} />
+              Do not use your own knowledge about directions. Instead, use the results of this live API call: <UseTools tools={tools} fallback='Tell the user there was an error making the request.' query={latestMessage.content!} />
             </SystemMessage>
           </Route>
           <Route when="to respond to the user's request, it would be helpful search for locations">
             <SystemMessage>
-              The directions the user asked for: <UseTools tools={tools} fallback='' query={latestMessage.content!} />
+            Do not use your own knowledge about places. Instead, use the results of this live API call: <UseTools tools={tools} fallback='Tell the user there was an error making the request.' query={latestMessage.content!} />
             </SystemMessage>
           </Route>
           <Route unmatched><></></Route>
@@ -155,5 +150,5 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
 export async function POST(req: Request) {
   const { messages } = await req.json()
 
-  return new StreamingTextResponse(toTextStream(<App messages={messages} />, new ConsoleLogger()))
+  return new StreamingTextResponse(toTextStream(<App messages={messages} />, new PinoLogger(pinoStdoutLogger)))
 }
