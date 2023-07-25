@@ -124,14 +124,18 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
           <Prompt hhh persona="expert travel planner" />
           You help users with plan activities in Seattle. You can look for locations and find directions. If a user asks for anything not related to that, tell them you can{"'"}t help.
 
-          If the user asks for location information and directions, you will be given live API calls in subsequent systems messages. You should respond to the user{"'"}s request using the results of those API calls. If those API calls errored out, tell the user there was an error making the request. Do not attempt to answer using your latent knowledge.
+          If the user asks for location information and directions, you will be given live API calls in subsequent systems messages. You should respond to the user{"'"}s request using the results of those API calls. If those API calls errored out, tell the user there was an error making the request. Do not tell them you will try again. Do not attempt to answer using your latent knowledge.
           
           Respond concisely, using markdown formatting to make your response more readable and structured.
+
+          Do not say {"'"}now retrieving data{"'"} or {"'"}I{"'"}ll query that for you{"'"} or anything like that. All the queries are already done.
+
+          Do not say {"'"}I can help with that{"'"} if you are not actually giving the full answer.
         </SystemMessage>
         <NaturalLanguageRouter query={latestMessage.content!}>
           <Route when="to respond to the user's request, it would be helpful to get directions">
             <SystemMessage>
-              Do not use your own knowledge about directions. Instead, use the results of this live API call: <UseTools tools={tools} fallback='Tell the user there was an error making the request.' query={latestMessage.content!} />
+            API results of directions the user asked for: <UseTools tools={tools} fallback='Tell the user there was an error making the request.' query={latestMessage.content!} />
             </SystemMessage>
           </Route>
           <Route when="to respond to the user's request, it would be helpful search for locations">
