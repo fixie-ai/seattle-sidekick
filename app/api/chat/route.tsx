@@ -58,9 +58,10 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
         };
         
         googleMapsApiUrl.search = querystring.stringify(params);
-        const responseBody = (await got(googleMapsApiUrl.toString(), {json: true})).body;
-        logger.info({responseBody, query, location, searchRadius}, 'Got response from google maps API')
-        return responseBody;
+        // @ts-expect-error got types are wrong
+        const responseBody = await got(googleMapsApiUrl.toString()).json();
+        logger.info({responseBody, query, location, searchRadius}, 'Got response from google maps place search API')
+        return JSON.stringify(responseBody);
       }
     },
     getLatLongOfLocation: {
@@ -80,21 +81,22 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
         };
         
         googleMapsApiUrl.search = querystring.stringify(params);
-        const responseBody = (await got(googleMapsApiUrl.toString(), {json: true})).body;
-        logger.info({responseBody, location}, 'Got response from google maps API')
-        return responseBody;
+        // @ts-expect-error got types are wrong
+        const responseBody = await got(googleMapsApiUrl.toString()).json();
+        logger.info({responseBody, location}, 'Got response from google maps geocode API')
+        return JSON.stringify(responseBody);
       }
     },
     getDirections: {
       description: 'Get directions between two locations via a variety of ways (walking, driving, public transit, etc.)',
       parameters: {
         origin: {
-          description: 'The starting location, e.g. "Seattle, WA" or "123 My Street, Bellevue WA", or a Google Maps place ID, or lat/long coords',
+          description: 'The starting location, e.g. "South Lake Union, Seattle, WA" or "123 My Street, Bellevue WA", or a Google Maps place ID, or lat/long coords. If you give a location name, you need to include the city and state.',
           type: 'string',
           required: true
         },
         destination: {
-          description: 'The ending location, e.g. "Seattle, WA" or "123 My Street, Bellevue WA", or a Google Maps place ID, or lat/long coords',
+          description: 'The ending location, e.g. "Fremont, Seattle, WA" or "123 My Street, Bellevue WA", or a Google Maps place ID, or lat/long coords. If you give a location name, you need to include the city and state.',
           type: 'string',
           required: true
         }
@@ -108,9 +110,10 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
         };
         
         googleMapsApiUrl.search = querystring.stringify(params);
-        const responseBody = (await got(googleMapsApiUrl.toString(), {json: true})).body;
-        logger.info({responseBody, destination, origin}, 'Got response from google maps API')
-        return responseBody;
+        // @ts-expect-error got types are wrong
+        const responseBody = await got(googleMapsApiUrl.toString()).json();
+        logger.info({responseBody, destination, origin}, 'Got response from google maps directions API') 
+        return JSON.stringify(responseBody);
       }
     }
   }
@@ -124,7 +127,10 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
           <Prompt hhh persona="expert travel planner" />
           You help users with plan activities in Seattle. You can look for locations and find directions. If a user asks for anything not related to that, tell them you can{"'"}t help.
 
-          If the user asks for location information and directions, you will be given live API calls in subsequent systems messages. You should respond to the user{"'"}s request using the results of those API calls. If those API calls errored out, tell the user there was an error making the request. Do not tell them you will try again. Do not attempt to answer using your latent knowledge.
+          If the user asks for location information and directions, you will be given live API calls in subsequent systems messages. You should respond to the user{"'"}s request using the results of those API calls. If those API calls errored out, tell the user there was an error making the request. Do not tell them you will try again.
+          
+          {/* This is not respected. */}
+          Do not attempt to answer using your latent knowledge.
           
           Respond concisely, using markdown formatting to make your response more readable and structured.
 
@@ -150,6 +156,11 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
     </OpenAI>
   )
 }
+
+/**
+ * I want UseTools to bomb out harder – just give me an error boundary. The fallback actually makes it harder.
+ * UseTools needs the full conversational history. NLR could use it as well.
+ */
 
 export async function POST(req: Request) {
   const { messages } = await req.json()
