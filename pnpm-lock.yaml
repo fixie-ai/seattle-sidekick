@@ -45,8 +45,8 @@ dependencies:
     specifier: ^2.1.6
     version: 2.1.6(react@18.2.0)(svelte@3.59.2)(vue@3.3.4)
   ai-jsx:
-    specifier: ^0.5.11
-    version: 0.5.11(@types/react@18.2.6)(graphql@16.7.1)(react@18.2.0)
+    specifier: ^0.5.15
+    version: 0.5.15(@types/react@18.2.6)(graphql@16.7.1)(react@18.2.0)
   class-variance-authority:
     specifier: ^0.4.0
     version: 0.4.0(typescript@5.1.3)
@@ -187,7 +187,7 @@ packages:
       digest-fetch: 1.3.0
       form-data-encoder: 1.7.2
       formdata-node: 4.4.1
-      node-fetch: 2.6.11
+      node-fetch: 2.6.12
       qs: 6.11.2
     transitivePeerDependencies:
       - encoding
@@ -471,7 +471,7 @@ packages:
       cross-fetch: 3.1.8
       graphql: 16.7.1
       graphql-request: 5.2.0(graphql@16.7.1)
-      langchain: 0.0.81(axios@1.4.0)
+      langchain: 0.0.81(axios@1.4.0)(replicate@0.12.3)
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -1546,8 +1546,8 @@ packages:
       - supports-color
     dev: false
 
-  /ai-jsx@0.5.11(@types/react@18.2.6)(graphql@16.7.1)(react@18.2.0):
-    resolution: {integrity: sha512-UfGMP0NArcfvgDXb0g88INcWNkwR8h27qyaLS3PxFLXTslPvTW4no1tnf15AR4KZDRI5apu/5/Odhi44mBJc3g==}
+  /ai-jsx@0.5.15(@types/react@18.2.6)(graphql@16.7.1)(react@18.2.0):
+    resolution: {integrity: sha512-FoOlhtB5oqVp1q0q09JjZ9+s4LN2RE/ZOqsWwURV4/cQhZylyrwoM5YUxCy1f+kV9uBKQXY5N0w0V3PBPieUGA==}
     peerDependencies:
       react: ^16.8.0  || ^17.0.0 || ^18.0.0
     dependencies:
@@ -1559,13 +1559,14 @@ packages:
       gpt3-tokenizer: 1.1.5
       ink: 4.3.0(@types/react@18.2.6)(react@18.2.0)
       js-yaml: 4.1.0
-      langchain: 0.0.81(axios@1.4.0)
+      langchain: 0.0.81(axios@1.4.0)(replicate@0.12.3)
       lodash: 4.17.21
       ml-distance: 4.0.1
       openai: 3.3.0
       openai-edge: 1.2.0
       pino: 8.14.1
       react: 18.2.0
+      replicate: 0.12.3
       server-only: 0.0.1
       untruncate-json: 0.0.1
       uuid: 9.0.0
@@ -1611,7 +1612,6 @@ packages:
       - puppeteer
       - react-devtools-core
       - redis
-      - replicate
       - srt-parser-2
       - supports-color
       - typeorm
@@ -3696,7 +3696,7 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /langchain@0.0.81(axios@1.4.0):
+  /langchain@0.0.81(axios@1.4.0)(replicate@0.12.3):
     resolution: {integrity: sha512-G4UOijTSA4Q8Anqn2Hdq3P4c2w2zJryAffh90kS5x2Lv+MugM/vPPcZXy9y3kZIET7Hdj/KTpkFOCofejpvWHA==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -3829,6 +3829,7 @@ packages:
       openai: 3.3.0
       p-queue: 6.6.2
       p-retry: 4.6.2
+      replicate: 0.12.3
       uuid: 9.0.0
       yaml: 2.2.2
       zod: 3.21.4
@@ -5304,6 +5305,11 @@ packages:
       '@types/mdast': 3.0.11
       mdast-util-to-hast: 12.3.0
       unified: 10.1.2
+    dev: false
+
+  /replicate@0.12.3:
+    resolution: {integrity: sha512-HVWKPoVhWVTONlWk+lUXmq9Vy2J8MxBJMtDBQq3dA5uq71ZzKTh0xvJfvzW4+VLBjhBeL7tkdua6hZJmKfzAPQ==}
+    engines: {git: '>=2.11.0', node: '>=16.6.0', npm: '>=7.19.0', yarn: '>=1.7.0'}
     dev: false
 
   /require-directory@2.1.1:
