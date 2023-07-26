@@ -1,12 +1,16 @@
 /** @jsxImportSource ai-jsx */
+/* eslint-disable react/jsx-key */
 import { toTextStream } from 'ai-jsx/stream'
 import {
   ChatCompletion,
   ConversationHistory,
-  SystemMessage
+  FunctionCall,
+  FunctionResponse,
+  SystemMessage,
+  UserMessage
 } from 'ai-jsx/core/completion'
 import { Prompt } from 'ai-jsx/batteries/prompts'
-import { UseTools, Tool } from 'ai-jsx/batteries/use-tools';
+import { Tool, UseToolsProps as UpstreamUseToolsProps } from 'ai-jsx/batteries/use-tools';
 import { NaturalLanguageRouter, Route } from 'ai-jsx/batteries/natural-language-router'
 import { OpenAI } from 'ai-jsx/lib/openai'
 import { StreamingTextResponse } from 'ai'
@@ -18,6 +22,75 @@ import _ from 'lodash'
 import * as AI from 'ai-jsx'
 import {LogImplementation, LogLevel, PinoLogger} from 'ai-jsx/core/log'
 import { pino } from 'pino';
+import { AIJSXError, ErrorCode } from 'ai-jsx/core/errors';
+
+interface UseToolsProps extends Omit<UpstreamUseToolsProps, 'query'> {
+  messages: Messages;
+}
+
+export async function* UseTools(props: UseToolsProps, { render }: AI.RenderContext) {
+  const messages = [
+    <SystemMessage>You are a smart agent that may use functions to answer a user question.</SystemMessage>,
+  ];
+  if (props.fallback) {
+    messages.push(
+      <SystemMessage>Here{"'"}s the fallback strategy/message if something failed: {props.fallback}</SystemMessage>
+    );
+  }
+  messages.push(<ConversationHistory messages={props.messages} />);
+
+  do {
+    const modelResponse = <ChatCompletion functionDefinitions={props.tools}>{messages}</ChatCompletion>;
+
+    const renderResult = yield* render(modelResponse, { stop: (el) => el.tag == FunctionCall });
+
+    const stringResponses: String[] = [];
+    let functionCallElement: AI.Element<any> | null = null;
+
+    for (const element of renderResult) {
+      if (typeof element === 'string') {
+        // Model has generated a string response. Record it.
+        stringResponses.push(element);
+      } else if (AI.isElement(element)) {
+        // Model has generated a function call.
+        if (functionCallElement) {
+          throw new AIJSXError(
+            `ChatCompletion returned 2 function calls at the same time ${renderResult.join(', ')}`,
+            ErrorCode.ModelOutputCouldNotBeParsedForTool,
+            'runtime'
+          );
+        }
+        functionCallElement = element;
+      } else {
+        throw new AIJSXError(
+          `Unexpected result from render ${renderResult.join(', ')}`,
+          ErrorCode.ModelOutputCouldNotBeParsedForTool,
+          'runtime'
+        );
+      }
+    }
+
+    if (functionCallElement) {
+      messages.push(functionCallElement);
+      yield functionCallElement;
+      // Call the selected function and append the result to the messages.
+      let response;
+      try {
+        const callable = props.tools[functionCallElement.props.name].func;
+        response = await callable(functionCallElement.props.args);
+      } catch (e: any) {
+        response = `Function called failed with error: ${e.message}.`;
+      } finally {
+        const functionResponse = <FunctionResponse name={functionCallElement.props.name}>{response}</FunctionResponse>;
+        yield functionResponse;
+        messages.push(functionResponse);
+      }
+    } else {
+      // Model did not generate any function call. Return the string responses.
+      return stringResponses.join('');
+    }
+  } while (true);
+}
 
 
 const pinoStdoutLogger = pino({
@@ -25,7 +98,9 @@ const pinoStdoutLogger = pino({
   level: process.env.loglevel ?? 'trace',
 });
 
-function App({ messages }: { messages: PropsOfComponent<typeof ConversationHistory>['messages'] }, {logger}: AI.ComponentContext) {
+type Messages = PropsOfComponent<typeof ConversationHistory>['messages'];
+
+function App({ messages }: { messages: Messages }, {logger}: AI.ComponentContext) {
 
   const defaultSeattleCoordinates = '47.6062,-122.3321';
   const tools: Record<string, Tool> = {
@@ -91,12 +166,12 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
       description: 'Get directions between two locations via a variety of ways (walking, driving, public transit, etc.)',
       parameters: {
         origin: {
-          description: 'The starting location, e.g. "South Lake Union, Seattle, WA" or "123 My Street, Bellevue WA", or a Google Maps place ID, or lat/long coords. If you give a location name, you need to include the city and state.',
+          description: 'The starting location, e.g. "South Lake Union, Seattle, WA" or "123 My Street, Bellevue WA", or a Google Maps place ID, or lat/long coords. If you give a location name, you need to include the city and state. Do not just give the name of a neighborhood.',
           type: 'string',
           required: true
         },
         destination: {
-          description: 'The ending location, e.g. "Fremont, Seattle, WA" or "123 My Street, Bellevue WA", or a Google Maps place ID, or lat/long coords. If you give a location name, you need to include the city and state.',
+          description: 'The ending location, e.g. "Fremont, Seattle, WA" or "123 My Street, Bellevue WA", or a Google Maps place ID, or lat/long coords. If you give a location name, you need to include the city and state. Do not just give the name of a neighborhood.',
           type: 'string',
           required: true
         }
@@ -110,10 +185,15 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
         };
         
         googleMapsApiUrl.search = querystring.stringify(params);
-        // @ts-expect-error got types are wrong
-        const responseBody = await got(googleMapsApiUrl.toString()).json();
-        logger.info({responseBody, destination, origin}, 'Got response from google maps directions API') 
-        return JSON.stringify(responseBody);
+        try {
+          // @ts-expect-error got types are wrong
+          const responseBody = await got(googleMapsApiUrl.toString()).json();
+          logger.info({responseBody, destination, origin}, 'Got response from google maps directions API') 
+          return JSON.stringify(responseBody);
+        } catch (e) {
+          logger.error({e, destination, origin}, 'Got error calling google maps directions API')
+          throw e;
+        }
       }
     }
   }
@@ -141,12 +221,12 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
         <NaturalLanguageRouter query={latestMessage.content!}>
           <Route when="to respond to the user's request, it would be helpful to get directions">
             <SystemMessage>
-            API results of directions the user asked for: <UseTools tools={tools} fallback='Tell the user there was an error making the request.' query={latestMessage.content!} />
+            API results of directions the user asked for: <UseTools tools={tools} fallback='Tell the user there was an error making the request.' messages={messages} />
             </SystemMessage>
           </Route>
           <Route when="to respond to the user's request, it would be helpful search for locations">
             <SystemMessage>
-            Do not use your own knowledge about places. Instead, use the results of this live API call: <UseTools tools={tools} fallback='Tell the user there was an error making the request.' query={latestMessage.content!} />
+            Do not use your own knowledge about places. Instead, use the results of this live API call: <UseTools tools={tools} fallback='Tell the user there was an error making the request.' messages={messages} />
             </SystemMessage>
           </Route>
           <Route unmatched><></></Route>
@@ -159,7 +239,12 @@ function App({ messages }: { messages: PropsOfComponent<typeof ConversationHisto
 
 /**
  * I want UseTools to bomb out harder – just give me an error boundary. The fallback actually makes it harder.
- * UseTools needs the full conversational history. NLR could use it as well.
+ * NLR needs the full conversational history.
+ * 
+ * We should probably store all previous API call results and make them available to future calls.
+ * 
+ * Questions I've used with this:
+ *    how can I get from ballard to belltown?
  */
 
 export async function POST(req: Request) {
