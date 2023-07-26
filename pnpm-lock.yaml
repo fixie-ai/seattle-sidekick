@@ -51,8 +51,8 @@ dependencies:
     specifier: ^2.1.6
     version: 2.1.6(react@18.2.0)(svelte@3.59.2)(vue@3.3.4)
   ai-jsx:
-    specifier: ^0.5.16
-    version: 0.5.16(@types/react@18.2.6)(graphql@16.7.1)(react@18.2.0)
+    specifier: ^0.6.0
+    version: 0.6.0(@types/react@18.2.6)(graphql@16.7.1)(react@18.2.0)
   class-variance-authority:
     specifier: ^0.4.0
     version: 0.4.0(typescript@5.1.3)
@@ -194,19 +194,17 @@ packages:
       - encoding
     dev: false
 
-  /@anthropic-ai/sdk@0.5.6:
-    resolution: {integrity: sha512-cwztGEhWHAuVBMZi7fKdkm9RSsUDN0y860RUo9M5JsHk+MQHnMIdc7ULrvt/8q06sqqcspsBgaxUUCRwRD+cWA==}
+  /@anthropic-ai/sdk@0.5.8:
+    resolution: {integrity: sha512-iHenjcE2Q/az6VZiP1DueOSvKNRmxsly6Rx2yjJBoy7OBYVFGVjEdgs2mPQHtTX0ibKAR7tPq6F6MQbKDPWcKg==}
     dependencies:
-      '@types/node': 18.16.19
+      '@types/node': 18.17.1
       '@types/node-fetch': 2.6.4
-      '@types/qs': 6.9.7
       abort-controller: 3.0.0
       agentkeepalive: 4.3.0
       digest-fetch: 1.3.0
       form-data-encoder: 1.7.2
       formdata-node: 4.4.1
-      node-fetch: 2.6.12
-      qs: 6.11.2
+      node-fetch: 2.6.11
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -1345,16 +1343,12 @@ packages:
   /@types/node@17.0.45:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
 
-  /@types/node@18.16.19:
-    resolution: {integrity: sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==}
+  /@types/node@18.17.1:
+    resolution: {integrity: sha512-xlR1jahfizdplZYRU59JlUx9uzF1ARa8jbhM11ccpCJya8kvos5jwdm2ZAgxSCwOl0fq21svP18EVwPBXMQudw==}
     dev: false
 
   /@types/prop-types@15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
-
-  /@types/qs@6.9.7:
-    resolution: {integrity: sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==}
-    dev: false
 
   /@types/react-dom@18.2.4:
     resolution: {integrity: sha512-G2mHoTMTL4yoydITgOGwWdWMVd8sNgyEP85xVmMKAPUBwQWm9wBPQUmvbeF4V3WBY1P7mmL4BkjQ0SqUpf1snw==}
@@ -1596,12 +1590,12 @@ packages:
       - supports-color
     dev: false
 
-  /ai-jsx@0.5.16(@types/react@18.2.6)(graphql@16.7.1)(react@18.2.0):
-    resolution: {integrity: sha512-FuVx37Nv6W8ZE7ZLSi8a4MypcSpb8Ewl+FP9tXEe7D0crQHg6DXOqxo30mQEqmPJiOMi3mg4HQaIS2xSI8QGhg==}
+  /ai-jsx@0.6.0(@types/react@18.2.6)(graphql@16.7.1)(react@18.2.0):
+    resolution: {integrity: sha512-6JoH++oqAeepZzkNKDvjG8mRcbOkAUN96IPR3dMtOaSzI87sJYZBae3K8D1s5O1lyRIQqgVXB3Jp4TG+FdbLow==}
     peerDependencies:
       react: ^16.8.0  || ^17.0.0 || ^18.0.0
     dependencies:
-      '@anthropic-ai/sdk': 0.5.6
+      '@anthropic-ai/sdk': 0.5.8
       '@nick.heiner/wandb-fork': 0.5.2-5(graphql@16.7.1)(langchain@0.0.81)
       axios: 1.4.0
       cli-highlight: 2.1.11
@@ -1613,7 +1607,7 @@ packages:
       lodash: 4.17.21
       ml-distance: 4.0.1
       openai: 3.3.0
-      openai-edge: 1.2.0
+      openai-edge: 1.2.2
       pino: 8.14.1
       react: 18.2.0
       replicate: 0.12.3
@@ -2006,6 +2000,7 @@ packages:
     dependencies:
       function-bind: 1.1.1
       get-intrinsic: 1.2.0
+    dev: true
 
   /callsites@3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
@@ -3110,6 +3105,7 @@ packages:
 
   /function-bind@1.1.1:
     resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==}
+    dev: true
 
   /function.prototype.name@1.1.5:
     resolution: {integrity: sha512-uN7m/BzVKQnCUF/iW8jYea67v++2u7m5UgENbHRtdDVclOUP+FMPlCNdmk0h/ysGyo2tavMJEDqJAkJdRa1vMA==}
@@ -3136,6 +3132,7 @@ packages:
       function-bind: 1.1.1
       has: 1.0.3
       has-symbols: 1.0.3
+    dev: true
 
   /get-nonce@1.0.1:
     resolution: {integrity: sha512-FJhYRoDaiatfEkUK8HKlicmu/3SGFD51q3itKDGoSTysQJBnfOcxU5GxnhE1E6soB76MbT0MBtnKJuXyAx+96Q==}
@@ -3343,6 +3340,7 @@ packages:
   /has-symbols@1.0.3:
     resolution: {integrity: sha512-l3LCuF6MgDNwTDKkdYGEihYjt5pRPbEg46rtlmnSPlUbgmB8LOIrKJbYYFBSbnPaJexMKtiPO8hmeRjRz2Td+A==}
     engines: {node: '>= 0.4'}
+    dev: true
 
   /has-tostringtag@1.0.0:
     resolution: {integrity: sha512-kFjcSNhnlGV1kyoGk7OXKSawH5JOb/LzUc5w9B02hOTO0dfFRjbHQKvg1d6cf3HbeUmtU9VbbV3qzZ2Teh97WQ==}
@@ -3356,6 +3354,7 @@ packages:
     engines: {node: '>= 0.4.0'}
     dependencies:
       function-bind: 1.1.1
+    dev: true
 
   /hast-util-parse-selector@2.2.5:
     resolution: {integrity: sha512-7j6mrk/qqkSehsM92wQjdIgWM2/BW61u/53G6xmC8i1OmEdKLHbk419QKQUjz6LglWsfqoiHmyMRkP1BGjecNQ==}
@@ -4801,6 +4800,7 @@ packages:
 
   /object-inspect@1.12.3:
     resolution: {integrity: sha512-geUvdk7c+eizMNUDkRpW1wJwgfOiOeHbxBR/hLXK1aT6zmVSO0jsQcs7fj6MGw89jC/cjGfLcNOrtMYtGqm81g==}
+    dev: true
 
   /object-is@1.1.5:
     resolution: {integrity: sha512-3cyDsyHgtmi7I7DfSSI2LDp6SK2lwvtbg0p0R1e0RvTqF5ceGx+K2dfSjm1bKDMVCFEDAQvy+o8c6a7VujOddw==}
@@ -4896,8 +4896,8 @@ packages:
     engines: {node: '>=12'}
     dev: false
 
-  /openai-edge@1.2.0:
-    resolution: {integrity: sha512-eaQs+O/1k6OZMUibNlBzWPXdHFxpUNLMy4BwhtXCFDub5iz7ve/PxOJTL8GBG3/1S1j6LIL93xjdlzCPQpbdgQ==}
+  /openai-edge@1.2.2:
+    resolution: {integrity: sha512-C3/Ao9Hkx5uBPv9YFBpX/x59XMPgPUU4dyGg/0J2sOJ7O9D98kD+lfdOc7v/60oYo5xzMGct80uFkYLH+X2qgw==}
     engines: {node: '>=18'}
     dev: false
 
@@ -5276,13 +5276,6 @@ packages:
     resolution: {integrity: sha512-rRV+zQD8tVFys26lAGR9WUuS4iUAngJScM+ZRSKtvl5tKeZ2t5bvdNFdNHBW9FWR4guGHlgmsZ1G7BSm2wTbuA==}
     engines: {node: '>=6'}
     dev: true
-
-  /qs@6.11.2:
-    resolution: {integrity: sha512-tDNIz22aBzCDxLtVH++VnTfzxlfeK5CbqohpSqpJgj1Wg/cQbStNAz3NuqCs5vV+pjBsK4x4pN9HlVh7rcYRiA==}
-    engines: {node: '>=0.6'}
-    dependencies:
-      side-channel: 1.0.4
-    dev: false
 
   /queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -5724,6 +5717,7 @@ packages:
       call-bind: 1.0.2
       get-intrinsic: 1.2.0
       object-inspect: 1.12.3
+    dev: true
 
   /signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
