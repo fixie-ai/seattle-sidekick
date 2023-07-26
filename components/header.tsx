@@ -41,14 +41,14 @@ export async function Header() {
           </Link>
         )}
         <div className="flex items-center">
-          <IconSeparator className="w-6 h-6 text-muted-foreground/50" />
+          {/* <IconSeparator className="w-6 h-6 text-muted-foreground/50" />
           {session?.user ? (
             <UserMenu user={session.user} />
           ) : (
             <Button variant="link" asChild className="-ml-2">
-              <Link href="/sign-in?callbackUrl=/">Login</Link>
+              <Link href="/sign-in?callbackUrl=/">Log in</Link>
             </Button>
-          )}
+          )} */}
         </div>
       </div>
       <div className="flex items-center justify-end space-x-2">
