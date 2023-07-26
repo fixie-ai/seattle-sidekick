@@ -116,6 +116,9 @@ dependencies:
   remark-math:
     specifier: ^5.1.1
     version: 5.1.1
+  type-fest:
+    specifier: ^4.0.0
+    version: 4.0.0
 
 devDependencies:
   '@tailwindcss/typography':
@@ -6136,6 +6139,11 @@ packages:
   /type-fest@3.13.1:
     resolution: {integrity: sha512-tLq3bSNx+xSpwvAJnzrK0Ep5CLNWjvFTOp71URMaAEWBfRb9nnJiBoUe0tF8bI4ZFO3omgBR6NvnbzVUT3Ly4g==}
     engines: {node: '>=14.16'}
+    dev: false
+
+  /type-fest@4.0.0:
+    resolution: {integrity: sha512-d/oYtUnPM9zar2fqqGLYPzgcY0qUlYK0evgNVti93xpzfjGkMgZHu9Lvgrkn0rqGXTgsFRxFamzjGoD9Uo+dgw==}
+    engines: {node: '>=16'}
     dev: false
 
   /typed-array-length@1.0.4:

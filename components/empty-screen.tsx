@@ -9,6 +9,10 @@ const exampleMessages = [
     heading: 'Ask for directions',
     message: `how can I get from ballard to bellown`
   },
+  {
+    heading: 'Ask for info about a current event',
+    message: `what's showing at the Seattle Art Museum now?`
+  },
 ]
 
 export function EmptyScreen({ setInput }: Pick<UseChatHelpers, 'setInput'>) {

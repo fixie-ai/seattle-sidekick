@@ -19,6 +19,13 @@ import _ from 'lodash'
 import * as AI from 'ai-jsx'
 import {PinoLogger} from 'ai-jsx/core/log'
 import { pino } from 'pino';
+import { Jsonifiable } from 'type-fest'
+import {
+  Corpus,
+  DefaultFormatter,
+  DocsQAProps,
+  ScoredChunk
+} from 'ai-jsx/batteries/docs'
 
 const pinoStdoutLogger = pino({
   name: 'ai-jsx',
@@ -27,10 +34,31 @@ const pinoStdoutLogger = pino({
 
 type Messages = PropsOfComponent<typeof ConversationHistory>['messages'];
 
+const seattleCorpusId = '1138';
+
 function App({ messages }: { messages: Messages }, {logger, render}: AI.ComponentContext) {
+
+  const corpus = new FixieCorpus(seattleCorpusId)
 
   const defaultSeattleCoordinates = '47.6062,-122.3321';
   const tools: Record<string, Tool> = {
+    lookUpSeattleInfo: {
+      description: 'Look up information about Seattle from a corpus that includes recent news stories, public events, travel blogs and guides, neighborhood blogs, and more.',
+      parameters: {
+        query: {
+          description: 'The search query. It will be embedded and used in a vector search against the corpus.',
+          type: 'string',
+          required: true
+        }
+      },
+      func: async ({ query }) => {
+        const results = await corpus.search(query, { limit: 3 })
+        logger.info({results, query}, 'Got results from Fixie corpus search');
+        return render(<>
+          {results.map(chunk => <ChunkFormatter doc={chunk} />)}
+        </>)
+      }
+    },
     searchForPlaces: {
       description: 'Search for places (restaurants, businesses, etc) in a given area',
       parameters: {
@@ -157,12 +185,16 @@ function App({ messages }: { messages: Messages }, {logger, render}: AI.Componen
           <Prompt hhh persona="expert travel planner" />
           You help users with plan activities in Seattle. You can look for locations and find directions. If a user asks for anything not related to that, tell them you cannot help.
 
-          If the user asks for location information and directions, you will be given live API calls in subsequent systems messages. You should respond to the user{"'"}s request using the results of those API calls. If those API calls errored out, tell the user there was an error making the request. Do not tell them you will try again.
-          
+          You have access to functions to look up live data about Seattle, including tourist info, attractions, and directions. If the user asks a question that would benefit from that info, call those functions, instead of answering from your latent knowledge.
+
+          If the API calls errored out, tell the user there was an error making the request. Do not tell them you will try again.
+
           {/* This is not respected. */}
           Do not attempt to answer using your latent knowledge.
           
           Respond concisely, using markdown formatting to make your response more readable and structured.
+
+          You may suggest follow-up ideas to the user, if they fall within the scope of what you are able to do.
         </SystemMessage>
         <ConversationHistory messages={messages} />
       </UseTools>
@@ -184,4 +216,72 @@ export async function POST(req: Request) {
   const { messages } = await req.json()
 
   return new StreamingTextResponse(toTextStream(<App messages={messages} />, new PinoLogger(pinoStdoutLogger)))
+}
+
+class FixieCorpus<ChunkMetadata extends Jsonifiable = Jsonifiable>
+  implements Corpus<ChunkMetadata>
+{
+  private static readonly DEFAULT_FIXIE_API_URL = 'https://app.fixie.ai/api'
+
+  private readonly fixieApiUrl: string
+
+  constructor(
+    private readonly corpusId: string,
+    private readonly fixieApiKey?: string
+  ) {
+    if (!fixieApiKey) {
+      this.fixieApiKey = process.env['FIXIE_API_KEY']
+      if (!this.fixieApiKey) {
+        throw new Error(
+          'You must provide a Fixie API key to access Fixie corpora. Find yours at https://app.fixie.ai/profile.'
+        )
+      }
+    }
+    this.fixieApiUrl =
+      process.env['FIXIE_API_URL'] ?? FixieCorpus.DEFAULT_FIXIE_API_URL
+  }
+
+  async search(
+    query: string,
+    params?: { limit?: number; metadata_filter?: any }
+  ): Promise<ScoredChunk<ChunkMetadata>[]> {
+    const response = await fetch(
+      `${this.fixieApiUrl}/corpora/${this.corpusId}:query`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.fixieApiKey}`
+        },
+        body: JSON.stringify({
+          query_string: query,
+          chunk_limit: params?.limit,
+          metadata_filter: params?.metadata_filter
+        })
+      }
+    )
+    if (response.status !== 200) {
+      throw new Error(
+        `Fixie API returned status ${response.status}: ${await response.text()}`
+      )
+    }
+    const apiResults = await response.json()
+    return apiResults.chunks.map((result: any) => ({
+      chunk: {
+        content: result.content,
+        metadata: result.metadata,
+        documentName: result.document_name
+      },
+      score: result.score
+    }))
+  }
+}
+
+function ChunkFormatter({ doc }: { doc: ScoredChunk<any> }) {
+  return <>
+  {'\n\n'}Chunk from source: {doc.chunk.metadata?.source}
+    {`\n\`\`\`chunk \n`}
+    {doc.chunk.content}
+    {'\n```\n'}
+  </>
 }
