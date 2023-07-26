@@ -43,6 +43,7 @@ function App({ messages }: { messages: Messages }, {logger, render}: AI.Componen
   const defaultSeattleCoordinates = '47.6062,-122.3321';
   const tools: Record<string, Tool> = {
     lookUpSeattleInfo: {
+      // Call the Fixie API and just give the model the full set of URLs.
       description: 'Look up information about Seattle from a corpus that includes recent news stories, public events, travel blogs and guides, neighborhood blogs, and more.',
       parameters: {
         query: {
@@ -183,7 +184,9 @@ function App({ messages }: { messages: Messages }, {logger, render}: AI.Componen
       <UseTools tools={tools} showSteps fallback=''>
         <SystemMessage>
           <Prompt hhh persona="expert travel planner" />
-          You help users with plan activities in Seattle. You can look for locations and find directions. If a user asks for anything not related to that, tell them you cannot help.
+          You help users plan activities and learn more about Seattle. If a user asks for anything not related to that, tell them you cannot help.
+
+          If the user asks an open-ended question, like {'"'}what is the weather{'"'}, assume it is intended in the context of Seattle.
 
           You have access to functions to look up live data about Seattle, including tourist info, attractions, and directions. If the user asks a question that would benefit from that info, call those functions, instead of answering from your latent knowledge.
 
