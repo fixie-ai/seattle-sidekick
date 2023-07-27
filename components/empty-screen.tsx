@@ -13,6 +13,10 @@ const exampleMessages = [
     heading: 'Ask for info about a current event',
     message: `what's showing at the Seattle Art Museum now?`
   },
+  {
+    heading: 'Are there any festivals happening now?',
+    message: `Are there any festivals happening now?`
+  },
 ]
 
 export function EmptyScreen({ setInput }: Pick<UseChatHelpers, 'setInput'>) {

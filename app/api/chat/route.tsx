@@ -53,7 +53,7 @@ function App({ messages }: { messages: Messages }, {logger, render}: AI.Componen
         }
       },
       func: async ({ query }) => {
-        const results = await corpus.search(query, { limit: 3 })
+        const results = await corpus.search(query, { limit: 2 })
         logger.info({results, query}, 'Got results from Fixie corpus search');
         return render(<>
           {results.map(chunk => <ChunkFormatter doc={chunk} />)}
@@ -179,6 +179,9 @@ function App({ messages }: { messages: Messages }, {logger, render}: AI.Componen
     }
   }
 
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const currentDate = daysOfWeek[new Date().getDay()];
+
   return (
     <OpenAI chatModel='gpt-4'>
       <UseTools tools={tools} showSteps fallback=''>
@@ -186,9 +189,13 @@ function App({ messages }: { messages: Messages }, {logger, render}: AI.Componen
           <Prompt hhh persona="expert travel planner" />
           You help users plan activities and learn more about Seattle. If a user asks for anything not related to that, tell them you cannot help.
 
-          If the user asks an open-ended question, like {'"'}what is the weather{'"'}, assume it is intended in the context of Seattle.
+          The current date and time is: {new Date().toLocaleString()}. The current day of the week is: {currentDate}.
 
-          You have access to functions to look up live data about Seattle, including tourist info, attractions, and directions. If the user asks a question that would benefit from that info, call those functions, instead of answering from your latent knowledge.
+          If the user asks an open-ended question, like {'"'}what is the weather{'"'}, assume it is intended in the context of Seattle. If the user does not specify a date or time, assume it is intended either now or in the near future. 
+
+          You have access to functions to look up live data about Seattle, including tourist info, attractions, and directions. If the user asks a question that would benefit from that info, call those functions, instead of answering from your latent knowledge. When you query these functions, make sure to include the current date or time if it is relevant. (For instance, if the user asks {'"'}are there sporting events today{'"'}, your search to lookUpSeattleInfo should be something like {'"'}sporting events in Seattle on {new Date().toLocaleDateString()} {'"'}.)
+          
+          Also, when you look at the function definition, you may see that you need more information from the user before you can use those functions. In that case, ask the user for the missing information.
 
           If the API calls errored out, tell the user there was an error making the request. Do not tell them you will try again.
 
@@ -198,6 +205,8 @@ function App({ messages }: { messages: Messages }, {logger, render}: AI.Componen
           Respond concisely, using markdown formatting to make your response more readable and structured.
 
           You may suggest follow-up ideas to the user, if they fall within the scope of what you are able to do.
+
+          
         </SystemMessage>
         <ConversationHistory messages={messages} />
       </UseTools>
