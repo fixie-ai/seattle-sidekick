@@ -26,8 +26,29 @@ type Messages = PropsOfComponent<typeof ConversationHistory>['messages'];
 
 const seattleCorpusId = '1138';
 
-function App({ messages }: { messages: Messages }, {logger, render}: AI.ComponentContext) {
+const coporaPromise = fixieFetch('/graphql', JSON.stringify({
+  query: ` query {
+    agentById(agentId: "ben2/SeattleSidekick") {
+      currentRevision{
+        configuration {
+          ... on CodeShotAgent {
+            corpora {
+              ... on UrlCorpusInfo {
+                urls
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`})
+)
 
+async function App({ messages }: { messages: Messages }, {logger, render}: AI.ComponentContext) {
+
+  const corpora = await coporaPromise;
+  logger.warn({corpora}, 'API response')
   const corpus = new FixieCorpus(seattleCorpusId)
 
   const defaultSeattleCoordinates = '47.6062,-122.3321';
@@ -220,54 +241,55 @@ export async function POST(req: Request) {
   return new StreamingTextResponse(toTextStream(<App messages={messages} />))
 }
 
+async function fixieFetch(pathname: string, body: string) {
+  const fixieApiUrl = process.env['FIXIE_API_URL'] ?? 'https://app.fixie.ai/'
+
+  const apiKey = process.env['FIXIE_API_KEY']
+  if (!apiKey) {
+    throw new Error(
+      'You must provide a Fixie API key to access Fixie corpora. Find yours at https://app.fixie.ai/profile.'
+    )
+  }
+  const response = await fetch(
+    fixieApiUrl + pathname,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body 
+    }
+  )
+  if (response.status !== 200) {
+    throw new Error(
+      `Fixie API returned status ${response.status}: ${await response.text()}`
+    )
+  }
+  return await response.json()
+}
+
 class FixieCorpus<ChunkMetadata extends Jsonifiable = Jsonifiable>
   implements Corpus<ChunkMetadata>
 {
-  private static readonly DEFAULT_FIXIE_API_URL = 'https://app.fixie.ai/api'
-
-  private readonly fixieApiUrl: string
-
   constructor(
     private readonly corpusId: string,
-    private readonly fixieApiKey?: string
   ) {
-    if (!fixieApiKey) {
-      this.fixieApiKey = process.env['FIXIE_API_KEY']
-      if (!this.fixieApiKey) {
-        throw new Error(
-          'You must provide a Fixie API key to access Fixie corpora. Find yours at https://app.fixie.ai/profile.'
-        )
-      }
-    }
-    this.fixieApiUrl =
-      process.env['FIXIE_API_URL'] ?? FixieCorpus.DEFAULT_FIXIE_API_URL
   }
 
   async search(
     query: string,
     params?: { limit?: number; metadata_filter?: any }
   ): Promise<ScoredChunk<ChunkMetadata>[]> {
-    const response = await fetch(
-      `${this.fixieApiUrl}/corpora/${this.corpusId}:query`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.fixieApiKey}`
-        },
-        body: JSON.stringify({
-          query_string: query,
-          chunk_limit: params?.limit,
-          metadata_filter: params?.metadata_filter
-        })
-      }
-    )
-    if (response.status !== 200) {
-      throw new Error(
-        `Fixie API returned status ${response.status}: ${await response.text()}`
-      )
-    }
-    const apiResults = await response.json()
+    const apiResults = await fixieFetch(
+      `/api/corpora/${this.corpusId}:query`,
+      JSON.stringify({
+        query_string: query,
+        chunk_limit: params?.limit,
+        metadata_filter: params?.metadata_filter
+      })
+    );
+    
     return apiResults.chunks.map((result: any) => ({
       chunk: {
         content: result.content,
