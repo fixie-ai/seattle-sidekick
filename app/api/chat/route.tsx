@@ -2,10 +2,8 @@
 /* eslint-disable react/jsx-key */
 import { toTextStream } from 'ai-jsx/stream'
 import {
-  ChatCompletion,
   ConversationHistory,
   SystemMessage,
-  UserMessage
 } from 'ai-jsx/core/completion'
 import { Prompt } from 'ai-jsx/batteries/prompts'
 import { Tool, UseTools } from 'ai-jsx/batteries/use-tools';
@@ -17,20 +15,12 @@ import url from 'node:url';
 import querystring from 'node:querystring';
 import _ from 'lodash'
 import * as AI from 'ai-jsx'
-import {PinoLogger} from 'ai-jsx/core/log'
 import { pino } from 'pino';
 import { Jsonifiable } from 'type-fest'
 import {
   Corpus,
-  DefaultFormatter,
-  DocsQAProps,
   ScoredChunk
 } from 'ai-jsx/batteries/docs'
-
-const pinoStdoutLogger = pino({
-  name: 'ai-jsx',
-  level: process.env.loglevel ?? 'trace',
-});
 
 type Messages = PropsOfComponent<typeof ConversationHistory>['messages'];
 
@@ -227,7 +217,7 @@ function App({ messages }: { messages: Messages }, {logger, render}: AI.Componen
 export async function POST(req: Request) {
   const { messages } = await req.json()
 
-  return new StreamingTextResponse(toTextStream(<App messages={messages} />, new PinoLogger(pinoStdoutLogger)))
+  return new StreamingTextResponse(toTextStream(<App messages={messages} />))
 }
 
 class FixieCorpus<ChunkMetadata extends Jsonifiable = Jsonifiable>
